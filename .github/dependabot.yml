@@ -1,8 +1,13 @@
-# Weekly version updates. Minor and patch updates are grouped into one PR per ecosystem;
-# majors come one PR each.
+# Dependabot version updates. Security updates and alerts are on in the repo settings;
+# this file adds weekly version updates for every dependency source.
+#
+# Minor and patch updates are grouped into one PR per ecosystem a week, so the PR count
+# stays small; major updates come one PR each, since they can need changes. CI runs on
+# every PR, and the "Protect main" ruleset needs it green before a merge.
 version: 2
 
 updates:
+  # Python: pyproject.toml and uv.lock
   - package-ecosystem: uv
     directory: /
     schedule:
@@ -13,6 +18,8 @@ updates:
       python-minor-and-patch:
         update-types: [minor, patch]
 
+  # Actions used in .github/workflows/: Dependabot updates the SHA and the version comment
+  # together.
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -1,0 +1,23 @@
+# Dependency Review: on each pull request, fail if it adds a dependency with a known high
+# or critical vulnerability, or under a license that doesn't fit the AGPL. Settings are in
+# .github/dependency-review-config.yml.
+name: dependency-review
+
+on:
+  pull_request:
+    branches: [main, "release/**"]
+
+permissions: {}
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          config-file: ./.github/dependency-review-config.yml
