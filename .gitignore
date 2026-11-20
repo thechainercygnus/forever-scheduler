@@ -22,3 +22,11 @@ wheels/
 .coverage.*
 coverage.xml
 htmlcov/
+
+# The bot's SQLite database (ADR 0002): it holds members' Discord ids and sign-ups
+*.db
+*.db-*
+
+# Claude Code's local state: worktrees and personal settings. Skills are shared.
+.claude/worktrees/
+.claude/settings.local.json

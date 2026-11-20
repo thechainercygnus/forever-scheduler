@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
   pull_request:
 
 # Least privilege: read-only by default; a job that needs more says so itself.
@@ -24,13 +24,40 @@ jobs:
       - run: uv run ruff check
       - run: uv run ruff format --check
       - run: uv run pyright
-      - run: uv run pytest --cov --cov-report=term
+      # Coverage: fails below the floor in pyproject.toml.
+      - run: uv run pytest --cov --cov-report=term --cov-report=xml
+      # Shown even when the floor fails the step above.
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('coverage.xml') != '' }}
+        run: |
+          uv run python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET
+          root = ET.parse("coverage.xml").getroot()
+          lines, branches = float(root.get("line-rate")), float(root.get("branch-rate"))
+          print("### Coverage")
+          print()
+          print(f"Statements **{lines:.1%}**, branches **{branches:.1%}**.")
+          EOF
+          {
+            echo "<details><summary>Per file</summary>"
+            echo
+            uv run coverage report --format=markdown
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - if: ${{ !cancelled() && hashFiles('coverage.xml') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: coverage.xml
+          retention-days: 14
 
   secret-scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # gitleaks-action lists a pull request's commits to scan them.
+      # gitleaks-action lists a pull request's commits to scan them; without this it
+      # fails on every PR with "Resource not accessible by integration".
       pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
